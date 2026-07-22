@@ -23,6 +23,19 @@
   <style>
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .dark body, .dark { background-color: #0f172a; color: #e2e8f0; }
+    .dark header { background-color: #1e293b; border-color: #334155; }
+    .dark .card-light { background-color: #1e293b; border-color: #334155; }
+    .dark .text-gray-900, .dark .text-gray-700 { color: #e2e8f0; }
+    .dark .text-gray-500, .dark .text-gray-400 { color: #94a3b8; }
+    .dark .bg-white { background-color: #1e293b; }
+    .dark .bg-gray-50 { background-color: #0f172a; }
+    .dark .bg-blue-50 { background-color: #1e3a5f; }
+    .dark .border-gray-200 { border-color: #334155; }
+    .dark .border-gray-100 { border-color: #334155; }
+    .dark #mobileMenu { background-color: #1e293b; border-color: #334155; }
+    .dark nav a { color: #e2e8f0; }
+    .dark .hover\:text-primary:hover { color: #93c5fd; }
   </style>
 </head>
 <body class="bg-white">
@@ -40,9 +53,15 @@
         <a href="#apps" class="text-sm text-gray-700 hover:text-primary font-medium">Outros apps</a>
         <a href="#contato" class="text-sm text-gray-700 hover:text-primary font-medium">Contato</a>
       </nav>
-      <a href="https://wa.me/5524981425316?text=QUERO%20TESTAR%20POR%2030%20DIAS" target="_blank" class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-        Teste Grátis
-      </a>
+      <div class="flex items-center gap-3">
+        <button id="themeToggle" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors" title="Alternar tema">
+          <svg id="sunIcon" class="w-5 h-5 text-gray-700 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="moonIcon" class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+        <a href="https://wa.me/5524981425316?text=QUERO%20TESTAR%20POR%2030%20DIAS" target="_blank" class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
+          Teste Grátis
+        </a>
+      </div>
       <button id="menuBtn" class="md:hidden text-gray-700">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
@@ -401,6 +420,34 @@
     });
     document.querySelectorAll('#mobileMenu a').forEach(a => {
       a.addEventListener('click', () => document.getElementById('mobileMenu').classList.add('hidden'));
+    });
+
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+    const html = document.documentElement;
+
+    function setTheme(dark) {
+      if (dark) {
+        html.classList.add('dark');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        html.classList.remove('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setTheme(true);
+    }
+
+    themeToggle.addEventListener('click', () => {
+      setTheme(!html.classList.contains('dark'));
     });
 
     document.getElementById('contactForm').addEventListener('submit', (e) => {

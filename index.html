@@ -24,7 +24,7 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     .dark body, .dark { background-color: #0f172a; color: #e2e8f0; }
-    .dark header { background-color: rgba(30, 58, 95, 0.15); border-color: #334155; }
+    .dark header { background-color: #1e293b; border-color: #334155; }
     .dark .card-light { background-color: #1e293b; border-color: #334155; }
     .dark .text-gray-900, .dark .text-gray-700 { color: #e2e8f0; }
     .dark .text-gray-500, .dark .text-gray-400 { color: #94a3b8; }
@@ -51,38 +51,38 @@
 <body class="bg-white">
 
   <!-- HEADER -->
-  <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-100" style="background-color: rgba(30, 58, 95, 0.03);">
+  <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-100" style="background-color: #1e3a5f;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
       <a href="#inicio" class="flex items-center gap-2">
         <img src="img/logo_menu.png" alt="Bestsoft Sistemas" class="h-10 rounded-lg">
       </a>
       <nav class="hidden md:flex items-center gap-8">
-        <a href="#inicio" class="text-sm text-gray-700 hover:text-primary font-medium">Início</a>
-        <a href="#recursos" class="text-sm text-gray-700 hover:text-primary font-medium">Recursos</a>
-        <a href="#planos" class="text-sm text-gray-700 hover:text-primary font-medium">Planos</a>
-        <a href="#apps" class="text-sm text-gray-700 hover:text-primary font-medium">Nossos apps</a>
-        <a href="#contato" class="text-sm text-gray-700 hover:text-primary font-medium">Contato</a>
+        <a href="#inicio" class="text-sm text-white hover:text-blue-200 font-medium">Início</a>
+        <a href="#recursos" class="text-sm text-white hover:text-blue-200 font-medium">Recursos</a>
+        <a href="#planos" class="text-sm text-white hover:text-blue-200 font-medium">Planos</a>
+        <a href="#apps" class="text-sm text-white hover:text-blue-200 font-medium">Nossos apps</a>
+        <a href="#contato" class="text-sm text-white hover:text-blue-200 font-medium">Contato</a>
       </nav>
       <div class="flex items-center gap-3">
-        <button id="themeToggle" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors" title="Alternar tema">
-          <svg id="sunIcon" class="w-5 h-5 text-gray-700 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          <svg id="moonIcon" class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <button id="themeToggle" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors" title="Alternar tema">
+          <svg id="sunIcon" class="w-5 h-5 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="moonIcon" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
         </button>
         <a href="https://wa.me/5524981425316?text=QUERO%20TESTAR%20POR%2030%20DIAS" target="_blank" class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
           Teste Grátis
         </a>
       </div>
-      <button id="menuBtn" class="md:hidden text-gray-700">
+      <button id="menuBtn" class="md:hidden text-white">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
     </div>
     <!-- Mobile menu -->
     <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-3">
-      <a href="#inicio" class="block text-sm text-gray-700 hover:text-primary">Início</a>
-      <a href="#recursos" class="block text-sm text-gray-700 hover:text-primary">Recursos</a>
-      <a href="#planos" class="block text-sm text-gray-700 hover:text-primary">Planos</a>
-      <a href="#apps" class="block text-sm text-gray-700 hover:text-primary">Nossos apps</a>
-      <a href="#contato" class="block text-sm text-gray-700 hover:text-primary">Contato</a>
+      <a href="#inicio" class="block text-sm text-white hover:text-blue-200">Início</a>
+      <a href="#recursos" class="block text-sm text-white hover:text-blue-200">Recursos</a>
+      <a href="#planos" class="block text-sm text-white hover:text-blue-200">Planos</a>
+      <a href="#apps" class="block text-sm text-white hover:text-blue-200">Nossos apps</a>
+      <a href="#contato" class="block text-sm text-white hover:text-blue-200">Contato</a>
     </div>
   </header>
 

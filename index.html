@@ -905,5 +905,25 @@
     });
   </script>
 
+  <!-- Tracking de acessos (página inicial) -->
+  <script>
+    (function () {
+      try {
+        const API_BASE = 'https://bestsoftsistemas-acessos.up.railway.app';
+        const payload = JSON.stringify({
+          path: '/',
+          ref: document.referrer || '',
+          screen: window.innerWidth + 'x' + window.innerHeight
+        });
+        const blob = new Blob([payload], { type: 'application/json' });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(API_BASE + '/api/hit', blob);
+        } else {
+          fetch(API_BASE + '/api/hit', { method: 'POST', body: payload, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {});
+        }
+      } catch (e) { /* falha silenciosa */ }
+    })();
+  </script>
+
 </body>
 </html>

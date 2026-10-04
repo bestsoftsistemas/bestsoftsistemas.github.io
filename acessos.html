@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acessos | Bestsoft Sistemas e Automação</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a5f',
+            'primary-dark': '#162d4a',
+            orange: '#f97316',
+            dark: '#0f172a',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <!-- HEADER (mesmo padrão do site) -->
+  <header class="fixed top-0 left-0 right-0 z-50" style="background-color: #1e3a5f;">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+      <a href="index.html" class="flex items-center gap-2">
+        <img src="img/logo_menu.png" alt="Bestsoft" class="h-10 w-auto">
+      </a>
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="index.html#inicio" class="text-sm text-white hover:text-blue-200 font-medium">Início</a>
+        <a href="index.html#bestlojawin" class="text-sm text-white hover:text-blue-200 font-medium">BestLOJAWIN</a>
+        <a href="index.html#apps" class="text-sm text-white hover:text-blue-200 font-medium">Nossos apps</a>
+        <a href="index.html#contato" class="text-sm text-white hover:text-blue-200 font-medium">Contato</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 pt-28 pb-16">
+    <div class="text-center mb-10">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">Acessos ao <span class="text-primary">Site</span></h1>
+      <p class="text-gray-500">Estatísticas de visitas da página inicial</p>
+    </div>
+
+    <!-- GATE DE SENHA -->
+    <div id="gate" class="max-w-sm mx-auto bg-white rounded-2xl border border-gray-200 p-8 text-center">
+      <h2 class="font-bold text-gray-900 text-lg mb-2">Área restrita</h2>
+      <p class="text-gray-500 text-sm mb-6">Digite a senha master para visualizar.</p>
+      <input type="password" id="masterInput" placeholder="Senha master" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm mb-4">
+      <button id="unlockBtn" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg transition-colors uppercase text-sm">Entrar</button>
+      <p id="gateError" class="hidden text-red-500 text-sm mt-4">Senha incorreta.</p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dash" class="hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+          <p class="text-gray-500 text-sm mb-1">Visitas (30 dias)</p>
+          <p id="statVisits" class="text-3xl font-extrabold text-primary">—</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+          <p class="text-gray-500 text-sm mb-1">Visitantes únicos</p>
+          <p id="statUniques" class="text-3xl font-extrabold text-primary">—</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+          <p class="text-gray-500 text-sm mb-1">Hoje</p>
+          <p id="statToday" class="text-3xl font-extrabold text-primary">—</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 class="font-bold text-gray-900 mb-4">Visitas por dia (últimos 30 dias)</h2>
+        <canvas id="chart" class="w-full" height="220"></canvas>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 class="font-bold text-gray-900 mb-4">Principais origens</h2>
+        <div id="refs" class="space-y-2 text-sm text-gray-700">
+          <p class="text-gray-400">Carregando...</p>
+        </div>
+      </div>
+      <p id="dashError" class="hidden text-red-500 text-sm mt-4 text-center">Não foi possível carregar os dados. Verifique se o serviço está no ar.</p>
+    </div>
+  </main>
+
+  <footer class="bg-dark text-gray-400 py-8 px-4" style="background-color: #0f172a;">
+    <div class="max-w-6xl mx-auto text-center text-sm">
+      <p class="font-bold text-white mb-1">Bestsoft Sistemas & Automação</p>
+      <p>CNPJ: 14.145.408/0001-66</p>
+    </div>
+  </footer>
+
+  <script>
+    // AJUSTE APÓS O DEPLOY: URL pública do serviço contador no Railway
+    const API_BASE = 'https://bestsoftsistemas-acessos.up.railway.app';
+
+    const gate = document.getElementById('gate');
+    const dash = document.getElementById('dash');
+    const masterInput = document.getElementById('masterInput');
+
+    function getMaster() { return sessionStorage.getItem('acessos_master') || ''; }
+
+    async function loadStats(master) {
+      const res = await fetch(API_BASE + '/api/stats?master=' + encodeURIComponent(master));
+      if (res.status === 401) throw new Error('auth');
+      if (!res.ok) throw new Error('http');
+      return res.json();
+    }
+
+    function renderChart(daily) {
+      const canvas = document.getElementById('chart');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.offsetWidth * 2;
+      const H = canvas.height = 440;
+      ctx.clearRect(0, 0, W, H);
+      const max = Math.max(1, ...daily.map(d => d.visits));
+      const n = daily.length;
+      const gap = 8;
+      const bw = (W - gap * (n - 1)) / n;
+      daily.forEach((d, i) => {
+        const h = Math.max(4, (d.visits / max) * (H - 60));
+        const x = i * (bw + gap);
+        const y = H - 40 - h;
+        ctx.fillStyle = '#1e3a5f';
+        ctx.beginPath();
+        ctx.roundRect(x, y, bw, h, 6);
+        ctx.fill();
+        if (i % 5 === 0 || i === n - 1) {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '20px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(d.day.slice(5), x + bw / 2, H - 8);
+        }
+      });
+    }
+
+    async function unlock(master) {
+      document.getElementById('gateError').classList.add('hidden');
+      document.getElementById('dashError').classList.add('hidden');
+      try {
+        const stats = await loadStats(master);
+        sessionStorage.setItem('acessos_master', master);
+        gate.classList.add('hidden');
+        dash.classList.remove('hidden');
+        document.getElementById('statVisits').textContent = stats.totals.visits;
+        document.getElementById('statUniques').textContent = stats.totals.uniques;
+        const today = stats.daily.length ? stats.daily[stats.daily.length - 1].visits : 0;
+        document.getElementById('statToday').textContent = today;
+        renderChart(stats.daily);
+        const refs = document.getElementById('refs');
+        refs.innerHTML = '';
+        if (!stats.topRefs.length) refs.innerHTML = '<p class="text-gray-400">Sem dados de origem ainda.</p>';
+        stats.topRefs.forEach(r => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between border-b border-gray-100 py-2';
+          row.innerHTML = '<span class="truncate">' + r.ref + '</span><span class="font-bold text-primary ml-4">' + r.n + '</span>';
+          refs.appendChild(row);
+        });
+      } catch (e) {
+        if (e.message === 'auth') {
+          document.getElementById('gateError').classList.remove('hidden');
+        } else {
+          document.getElementById('dashError').classList.remove('hidden');
+        }
+      }
+    }
+
+    document.getElementById('unlockBtn').addEventListener('click', () => unlock(masterInput.value.trim()));
+    masterInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(masterInput.value.trim()); });
+    if (getMaster()) { masterInput.value = getMaster(); unlock(getMaster()); }
+  </script>
+</body>
+</html>

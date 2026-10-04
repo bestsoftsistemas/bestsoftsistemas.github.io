@@ -25,63 +25,68 @@
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col" style="background-color: #0f172a; color: #e2e8f0;">
+<body class="bg-gray-50 min-h-screen flex flex-col">
   <!-- HEADER (mesmo padrão do site) -->
   <header class="fixed top-0 left-0 right-0 z-50" style="background-color: #1e3a5f;">
-    <div class="max-w-6xl mx-auto flex items-center justify-center px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
       <a href="index.html" class="flex items-center gap-2">
         <img src="img/logo_menu.png" alt="Bestsoft" class="h-10 w-auto">
       </a>
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="index.html#inicio" class="text-sm text-white hover:text-blue-200 font-medium">Início</a>
+        <a href="index.html#bestlojawin" class="text-sm text-white hover:text-blue-200 font-medium">BestLOJAWIN</a>
+        <a href="index.html#apps" class="text-sm text-white hover:text-blue-200 font-medium">Nossos apps</a>
+        <a href="index.html#contato" class="text-sm text-white hover:text-blue-200 font-medium">Contato</a>
+      </nav>
     </div>
   </header>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-4 pt-28 pb-16">
     <div class="text-center mb-10">
-      <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-2">Acessos ao <span class="text-blue-400">Site</span></h1>
-      <p class="text-slate-400">Estatísticas de visitas da página inicial</p>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">Acessos ao <span class="text-primary">Site</span></h1>
+      <p class="text-gray-500">Estatísticas de visitas da página inicial</p>
     </div>
 
     <!-- GATE DE SENHA -->
-    <div id="gate" class="max-w-sm mx-auto bg-slate-800 rounded-2xl border border-slate-700 p-8 text-center">
-      <h2 class="font-bold text-white text-lg mb-2">Área restrita</h2>
-      <p class="text-slate-400 text-sm mb-6">Digite a senha master para visualizar.</p>
-      <input type="password" id="masterInput" placeholder="Senha master" class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm mb-4">
+    <div id="gate" class="max-w-sm mx-auto bg-white rounded-2xl border border-gray-200 p-8 text-center">
+      <h2 class="font-bold text-gray-900 text-lg mb-2">Área restrita</h2>
+      <p class="text-gray-500 text-sm mb-6">Digite a senha master para visualizar.</p>
+      <input type="password" id="masterInput" placeholder="Senha master" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm mb-4">
       <button id="unlockBtn" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg transition-colors uppercase text-sm">Entrar</button>
       <p id="gateError" class="hidden text-red-500 text-sm mt-4">Senha incorreta.</p>
-      <p id="netError" class="hidden text-red-500 text-sm mt-4">Não foi possível conectar ao serviço. Verifique se o deploy no Railway está no ar.</p>
     </div>
 
     <!-- DASHBOARD -->
     <div id="dash" class="hidden">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 text-center">
-          <p class="text-slate-400 text-sm mb-1">Visitas (30 dias)</p>
-          <p id="statVisits" class="text-3xl font-extrabold text-blue-400">—</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+          <p class="text-gray-500 text-sm mb-1">Visitas (30 dias)</p>
+          <p id="statVisits" class="text-3xl font-extrabold text-primary">—</p>
         </div>
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 text-center">
-          <p class="text-slate-400 text-sm mb-1">Visitantes únicos</p>
-          <p id="statUniques" class="text-3xl font-extrabold text-blue-400">—</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+          <p class="text-gray-500 text-sm mb-1">Visitantes únicos</p>
+          <p id="statUniques" class="text-3xl font-extrabold text-primary">—</p>
         </div>
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 text-center">
-          <p class="text-slate-400 text-sm mb-1">Hoje</p>
-          <p id="statToday" class="text-3xl font-extrabold text-blue-400">—</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+          <p class="text-gray-500 text-sm mb-1">Hoje</p>
+          <p id="statToday" class="text-3xl font-extrabold text-primary">—</p>
         </div>
       </div>
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-8">
-        <h2 class="font-bold text-white mb-4">Visitas por dia (últimos 30 dias)</h2>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 class="font-bold text-gray-900 mb-4">Visitas por dia (últimos 30 dias)</h2>
         <canvas id="chart" class="w-full" height="220"></canvas>
       </div>
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6">
-        <h2 class="font-bold text-white mb-4">Principais origens</h2>
-        <div id="refs" class="space-y-2 text-sm text-slate-300">
-          <p class="text-slate-500">Carregando...</p>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 class="font-bold text-gray-900 mb-4">Principais origens</h2>
+        <div id="refs" class="space-y-2 text-sm text-gray-700">
+          <p class="text-gray-400">Carregando...</p>
         </div>
       </div>
       <p id="dashError" class="hidden text-red-500 text-sm mt-4 text-center">Não foi possível carregar os dados. Verifique se o serviço está no ar.</p>
     </div>
   </main>
 
-  <footer class="bg-dark text-slate-500 py-8 px-4" style="background-color: #0f172a;">
+  <footer class="bg-dark text-gray-400 py-8 px-4" style="background-color: #0f172a;">
     <div class="max-w-6xl mx-auto text-center text-sm">
       <p class="font-bold text-white mb-1">Bestsoft Sistemas & Automação</p>
       <p>CNPJ: 14.145.408/0001-66</p>
@@ -119,7 +124,7 @@
         const h = Math.max(4, (d.visits / max) * (H - 60));
         const x = i * (bw + gap);
         const y = H - 40 - h;
-        ctx.fillStyle = '#60a5fa';
+        ctx.fillStyle = '#1e3a5f';
         ctx.beginPath();
         ctx.roundRect(x, y, bw, h, 6);
         ctx.fill();
@@ -133,11 +138,8 @@
     }
 
     async function unlock(master) {
-      const btn = document.getElementById('unlockBtn');
       document.getElementById('gateError').classList.add('hidden');
-      document.getElementById('netError').classList.add('hidden');
-      btn.disabled = true;
-      btn.textContent = 'Entrando...';
+      document.getElementById('dashError').classList.add('hidden');
       try {
         const stats = await loadStats(master);
         sessionStorage.setItem('acessos_master', master);
@@ -150,23 +152,19 @@
         renderChart(stats.daily);
         const refs = document.getElementById('refs');
         refs.innerHTML = '';
-        if (!stats.topRefs.length) refs.innerHTML = '<p class="text-slate-500">Sem dados de origem ainda.</p>';
+        if (!stats.topRefs.length) refs.innerHTML = '<p class="text-gray-400">Sem dados de origem ainda.</p>';
         stats.topRefs.forEach(r => {
           const row = document.createElement('div');
-          row.className = 'flex items-center justify-between border-b border-slate-700 py-2';
-          row.innerHTML = '<span class="truncate">' + r.ref + '</span><span class="font-bold text-blue-400 ml-4">' + r.n + '</span>';
+          row.className = 'flex items-center justify-between border-b border-gray-100 py-2';
+          row.innerHTML = '<span class="truncate">' + r.ref + '</span><span class="font-bold text-primary ml-4">' + r.n + '</span>';
           refs.appendChild(row);
         });
       } catch (e) {
         if (e.message === 'auth') {
           document.getElementById('gateError').classList.remove('hidden');
         } else {
-          document.getElementById('netError').classList.remove('hidden');
+          document.getElementById('dashError').classList.remove('hidden');
         }
-      } finally {
-        const btn = document.getElementById('unlockBtn');
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
       }
     }
 

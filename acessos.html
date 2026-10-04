@@ -54,6 +54,7 @@
       <input type="password" id="masterInput" placeholder="Senha master" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm mb-4">
       <button id="unlockBtn" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg transition-colors uppercase text-sm">Entrar</button>
       <p id="gateError" class="hidden text-red-500 text-sm mt-4">Senha incorreta.</p>
+      <p id="netError" class="hidden text-red-500 text-sm mt-4">Não foi possível conectar ao serviço. Verifique se o deploy no Railway está no ar.</p>
     </div>
 
     <!-- DASHBOARD -->
@@ -138,8 +139,11 @@
     }
 
     async function unlock(master) {
+      const btn = document.getElementById('unlockBtn');
       document.getElementById('gateError').classList.add('hidden');
-      document.getElementById('dashError').classList.add('hidden');
+      document.getElementById('netError').classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
       try {
         const stats = await loadStats(master);
         sessionStorage.setItem('acessos_master', master);
@@ -163,8 +167,12 @@
         if (e.message === 'auth') {
           document.getElementById('gateError').classList.remove('hidden');
         } else {
-          document.getElementById('dashError').classList.remove('hidden');
+          document.getElementById('netError').classList.remove('hidden');
         }
+      } finally {
+        const btn = document.getElementById('unlockBtn');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
       }
     }
 

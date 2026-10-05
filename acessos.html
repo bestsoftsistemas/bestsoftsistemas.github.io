@@ -73,7 +73,7 @@
     <div id="dash" class="hidden">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
-          <p class="text-gray-500 text-sm mb-1">Visitas (30 dias)</p>
+          <p class="text-gray-500 text-sm mb-1">Visitas (<span id="rangeLabel">30</span> dias)</p>
           <p id="statVisits" class="text-3xl font-extrabold text-primary">—</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-200 p-6 text-center">
@@ -86,7 +86,14 @@
         </div>
       </div>
       <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <h2 class="font-bold text-gray-900 mb-4">Visitas por dia (últimos 30 dias)</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 id="chartTitle" class="font-bold text-gray-900">Visitas por dia (últimos 30 dias)</h2>
+          <div class="flex rounded-lg border border-gray-300 overflow-hidden text-sm font-semibold">
+            <button data-range="30" class="rangeBtn px-4 py-2 transition-colors">30d</button>
+            <button data-range="60" class="rangeBtn px-4 py-2 transition-colors">60d</button>
+            <button data-range="90" class="rangeBtn px-4 py-2 transition-colors">90d</button>
+          </div>
+        </div>
         <canvas id="chart" class="w-full" height="220"></canvas>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -121,98 +128,140 @@
     const gate = document.getElementById('gate');
     const dash = document.getElementById('dash');
     const masterInput = document.getElementById('masterInput');
-    let lastDaily = [];
+    let lastStats = null;
+    let currentRange = 30;
+
+    const MONTHS_PT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
     function getMaster() { return sessionStorage.getItem('acessos_master') || ''; }
 
-    async function loadStats(master) {
-      const res = await fetch(API_BASE + '/api/stats?master=' + encodeURIComponent(master));
+    async function loadStats(master, days) {
+      const res = await fetch(API_BASE + '/api/stats?master=' + encodeURIComponent(master) + '&days=' + days);
       if (res.status === 401) throw new Error('auth');
       if (!res.ok) throw new Error('http');
       return res.json();
     }
 
-    function renderChart(daily) {
+    function paintRangeBtns() {
+      document.querySelectorAll('.rangeBtn').forEach(b => {
+        const active = Number(b.dataset.range) === currentRange;
+        b.className = 'rangeBtn px-4 py-2 transition-colors ' +
+          (active ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-50');
+      });
+    }
+
+    function renderChart(stats) {
       const canvas = document.getElementById('chart');
       const ctx = canvas.getContext('2d');
       const W = canvas.width = canvas.offsetWidth * 2;
       const H = canvas.height = 500;
       ctx.clearRect(0, 0, W, H);
-      const max = Math.max(1, ...daily.map(d => d.visits));
-      const n = daily.length;
+      const monthly = currentRange > 30;
+      const points = monthly ? (stats.monthly || []) : stats.daily;
+      if (!points.length) return;
+      const max = Math.max(1, ...points.map(d => d.visits));
+      const n = points.length;
       const gap = 8;
       const bw = (W - gap * (n - 1)) / n;
-      daily.forEach((d, i) => {
+      const isLight = document.documentElement.classList.contains('light');
+      points.forEach((d, i) => {
         const h = Math.max(4, (d.visits / max) * (H - 160));
         const x = i * (bw + gap);
         const y = H - 100 - h;
-        const isLight = document.documentElement.classList.contains('light');
         ctx.fillStyle = isLight ? '#1e3a5f' : '#60a5fa';
         ctx.beginPath();
         ctx.roundRect(x, y, bw, h, 6);
         ctx.fill();
-        // data em TODAS as barras (rotacionada para caber entre elas)
         ctx.fillStyle = '#94a3b8';
-        ctx.font = '26px Inter, sans-serif';
         ctx.save();
         ctx.translate(x + bw / 2, H - 16);
-        ctx.rotate(-Math.PI / 2);
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(d.day.slice(8, 10) + '/' + d.day.slice(5, 7), 0, 0);
+        if (monthly) {
+          // rótulo horizontal: mês/ano (ex.: ago/26)
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = '26px Inter, sans-serif';
+          const mi = parseInt(d.month.slice(5, 7), 10) - 1;
+          ctx.fillText(MONTHS_PT[mi] + '/' + d.month.slice(2, 4), 0, 0);
+        } else {
+          // data rotacionada em TODAS as barras para caber entre elas
+          ctx.rotate(-Math.PI / 2);
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.font = '26px Inter, sans-serif';
+          ctx.fillText(d.day.slice(8, 10) + '/' + d.day.slice(5, 7), 0, 0);
+        }
         ctx.restore();
       });
+    }
+
+    function renderRefs(refs, list) {
+      refs.innerHTML = '';
+      if (!list.length) { refs.innerHTML = '<p class="text-gray-400">Sem dados de origem ainda.</p>'; return; }
+      list.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between border-b border-gray-100 py-2';
+        row.innerHTML = '<span class="truncate">' + r.ref + '</span><span class="font-bold text-primary ml-4">' + r.n + '</span>';
+        refs.appendChild(row);
+      });
+    }
+
+    function renderDevices(stats) {
+      const devs = stats.devices || {};
+      const devBox = document.getElementById('devices');
+      devBox.innerHTML = '';
+      const devList = [
+        ['desktop', '💻 Computador'],
+        ['mobile', '📱 Celular'],
+        ['tablet', '📋 Tablet'],
+        ['unknown', '❔ Desconhecido'],
+      ];
+      const devTotal = devList.reduce((a, [k]) => a + (devs[k] || 0), 0);
+      devList.forEach(([k, label]) => {
+        const n = devs[k] || 0;
+        if (!n) return;
+        const pct = devTotal ? Math.round((n / devTotal) * 100) : 0;
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between border-b border-gray-100 py-2';
+        row.innerHTML = '<span class="truncate">' + label + '</span><span class="font-bold text-primary ml-4">' + n + ' <span class="text-gray-500 font-normal">(' + pct + '%)</span></span>';
+        devBox.appendChild(row);
+      });
+      if (!devBox.children.length) devBox.innerHTML = '<p class="text-gray-400">Sem dados de dispositivo ainda.</p>';
+    }
+
+    async function renderAll(master) {
+      const stats = await loadStats(master, currentRange);
+      lastStats = stats;
+      gate.classList.add('hidden');
+      dash.classList.remove('hidden');
+      document.getElementById('rangeLabel').textContent = currentRange;
+      document.getElementById('chartTitle').textContent = currentRange === 30
+        ? 'Visitas por dia (últimos 30 dias)'
+        : 'Evolução mensal (últimos ' + currentRange + ' dias)';
+      document.getElementById('statVisits').textContent = stats.totals.visits;
+      document.getElementById('statUniques').textContent = stats.totals.uniques;
+      const today = stats.daily.length ? stats.daily[stats.daily.length - 1].visits : 0;
+      document.getElementById('statToday').textContent = today;
+      renderChart(stats);
+      renderRefs(document.getElementById('refs'), stats.topRefs);
+      renderDevices(stats);
+      paintRangeBtns();
+    }
+
+    function showErrors(e, fromGate) {
+      const showGate = e.message === 'auth' && fromGate;
+      document.getElementById('gateError').classList.toggle('hidden', !showGate);
+      document.getElementById('dashError').classList.toggle('hidden', showGate);
     }
 
     async function unlock(master) {
       document.getElementById('gateError').classList.add('hidden');
       document.getElementById('dashError').classList.add('hidden');
       try {
-        const stats = await loadStats(master);
         sessionStorage.setItem('acessos_master', master);
-        gate.classList.add('hidden');
-        dash.classList.remove('hidden');
-        document.getElementById('statVisits').textContent = stats.totals.visits;
-        document.getElementById('statUniques').textContent = stats.totals.uniques;
-        const today = stats.daily.length ? stats.daily[stats.daily.length - 1].visits : 0;
-        document.getElementById('statToday').textContent = today;
-        lastDaily = stats.daily;
-        renderChart(stats.daily);
-        const refs = document.getElementById('refs');
-        refs.innerHTML = '';
-        if (!stats.topRefs.length) refs.innerHTML = '<p class="text-gray-400">Sem dados de origem ainda.</p>';
-        stats.topRefs.forEach(r => {
-          const row = document.createElement('div');
-          row.className = 'flex items-center justify-between border-b border-gray-100 py-2';
-          row.innerHTML = '<span class="truncate">' + r.ref + '</span><span class="font-bold text-primary ml-4">' + r.n + '</span>';
-          refs.appendChild(row);
-        });
-        const devs = stats.devices || {};
-        const devBox = document.getElementById('devices');
-        devBox.innerHTML = '';
-        const devList = [
-          ['desktop', '💻 Computador'],
-          ['mobile', '📱 Celular'],
-          ['tablet', '📋 Tablet'],
-          ['unknown', '❔ Desconhecido'],
-        ];
-        const devTotal = devList.reduce((a, [k]) => a + (devs[k] || 0), 0);
-        devList.forEach(([k, label]) => {
-          const n = devs[k] || 0;
-          if (!n) return;
-          const pct = devTotal ? Math.round((n / devTotal) * 100) : 0;
-          const row = document.createElement('div');
-          row.className = 'flex items-center justify-between border-b border-gray-100 py-2';
-          row.innerHTML = '<span class="truncate">' + label + '</span><span class="font-bold text-primary ml-4">' + n + ' <span class="text-gray-500 font-normal">(' + pct + '%)</span></span>';
-          devBox.appendChild(row);
-        });
-        if (!devBox.children.length) devBox.innerHTML = '<p class="text-gray-400">Sem dados de dispositivo ainda.</p>';
+        await renderAll(master);
       } catch (e) {
-        if (e.message === 'auth') {
-          document.getElementById('gateError').classList.remove('hidden');
-        } else {
-          document.getElementById('dashError').classList.remove('hidden');
-        }
+        if (e.message === 'auth') sessionStorage.removeItem('acessos_master');
+        showErrors(e, true);
       }
     }
 
@@ -222,7 +271,7 @@
       document.documentElement.classList.toggle('light', theme === 'light');
       try { localStorage.setItem('acessos_theme', theme); } catch (e) {}
       themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
-      if (lastDaily.length && !dash.classList.contains('hidden')) renderChart(lastDaily);
+      if (lastStats && !dash.classList.contains('hidden')) renderChart(lastStats);
     }
     themeBtn.addEventListener('click', () => {
       applyTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
@@ -232,6 +281,21 @@
       try { t = localStorage.getItem('acessos_theme') || 'dark'; } catch (e) {}
       themeIcon.textContent = t === 'light' ? '🌙' : '☀️';
     })();
+
+    document.querySelectorAll('.rangeBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const r = Number(btn.dataset.range);
+        if (r === currentRange) return;
+        currentRange = r;
+        paintRangeBtns();
+        const m = getMaster();
+        if (m) {
+          document.getElementById('dashError').classList.add('hidden');
+          renderAll(m).catch(e => showErrors(e, false));
+        }
+      });
+    });
+    paintRangeBtns();
 
     document.getElementById('unlockBtn').addEventListener('click', () => unlock(masterInput.value.trim()));
     masterInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(masterInput.value.trim()); });

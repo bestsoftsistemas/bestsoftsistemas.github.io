@@ -23,7 +23,23 @@
   <style>
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    /* Tema escuro (padrão) */
+    html:not(.light) body { background-color: #0f172a; color: #e2e8f0; }
+    html:not(.light) .bg-gray-50 { background-color: #0f172a !important; }
+    html:not(.light) .bg-white { background-color: #1e293b !important; }
+    html:not(.light) .border-gray-200 { border-color: #334155 !important; }
+    html:not(.light) .border-gray-100 { border-color: #334155 !important; }
+    html:not(.light) .border-gray-300 { border-color: #475569 !important; }
+    html:not(.light) .text-gray-900 { color: #f1f5f9 !important; }
+    html:not(.light) .text-gray-700 { color: #cbd5e1 !important; }
+    html:not(.light) .text-gray-500 { color: #94a3b8 !important; }
+    html:not(.light) .text-gray-400 { color: #64748b !important; }
+    html:not(.light) .text-primary { color: #60a5fa !important; }
+    html:not(.light) #masterInput { background-color: #0f172a !important; color: #e2e8f0 !important; }
   </style>
+  <script>
+    try { if (localStorage.getItem('acessos_theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}
+  </script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
   <!-- HEADER (mesmo padrão do site) -->
@@ -32,12 +48,9 @@
       <a href="index.html" class="flex items-center gap-2">
         <img src="img/logo_menu.png" alt="Bestsoft" class="h-10 w-auto">
       </a>
-      <nav class="hidden md:flex items-center gap-8">
-        <a href="index.html#inicio" class="text-sm text-white hover:text-blue-200 font-medium">Início</a>
-        <a href="index.html#bestlojawin" class="text-sm text-white hover:text-blue-200 font-medium">BestLOJAWIN</a>
-        <a href="index.html#apps" class="text-sm text-white hover:text-blue-200 font-medium">Nossos apps</a>
-        <a href="index.html#contato" class="text-sm text-white hover:text-blue-200 font-medium">Contato</a>
-      </nav>
+      <button id="themeBtn" title="Alternar tema claro/escuro" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-lg leading-none">
+        <span id="themeIcon">☀️</span>
+      </button>
     </div>
   </header>
 
@@ -100,6 +113,7 @@
     const gate = document.getElementById('gate');
     const dash = document.getElementById('dash');
     const masterInput = document.getElementById('masterInput');
+    let lastDaily = [];
 
     function getMaster() { return sessionStorage.getItem('acessos_master') || ''; }
 
@@ -124,7 +138,8 @@
         const h = Math.max(4, (d.visits / max) * (H - 60));
         const x = i * (bw + gap);
         const y = H - 40 - h;
-        ctx.fillStyle = '#1e3a5f';
+        const isLight = document.documentElement.classList.contains('light');
+        ctx.fillStyle = isLight ? '#1e3a5f' : '#60a5fa';
         ctx.beginPath();
         ctx.roundRect(x, y, bw, h, 6);
         ctx.fill();
@@ -149,6 +164,7 @@
         document.getElementById('statUniques').textContent = stats.totals.uniques;
         const today = stats.daily.length ? stats.daily[stats.daily.length - 1].visits : 0;
         document.getElementById('statToday').textContent = today;
+        lastDaily = stats.daily;
         renderChart(stats.daily);
         const refs = document.getElementById('refs');
         refs.innerHTML = '';
@@ -167,6 +183,23 @@
         }
       }
     }
+
+    const themeBtn = document.getElementById('themeBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    function applyTheme(theme) {
+      document.documentElement.classList.toggle('light', theme === 'light');
+      try { localStorage.setItem('acessos_theme', theme); } catch (e) {}
+      themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+      if (lastDaily.length && !dash.classList.contains('hidden')) renderChart(lastDaily);
+    }
+    themeBtn.addEventListener('click', () => {
+      applyTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
+    });
+    (function initThemeIcon() {
+      let t = 'dark';
+      try { t = localStorage.getItem('acessos_theme') || 'dark'; } catch (e) {}
+      themeIcon.textContent = t === 'light' ? '🌙' : '☀️';
+    })();
 
     document.getElementById('unlockBtn').addEventListener('click', () => unlock(masterInput.value.trim()));
     masterInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(masterInput.value.trim()); });

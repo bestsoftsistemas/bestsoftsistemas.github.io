@@ -289,7 +289,16 @@
         const r = Number(btn.dataset.range);
         if (r === currentRange) return;
         currentRange = r;
-        paintRangeBtns();
+    paintRangeBtns();
+
+    // Auto-refresh: recarrega os dados a cada 1 hora (se logado)
+    setInterval(() => {
+      const m = getMaster();
+      if (m && !dash.classList.contains('hidden')) {
+        renderAll(m).catch(e => showErrors(e, false));
+      }
+    }, 60 * 60 * 1000);
+
         const m = getMaster();
         if (m) {
           document.getElementById('dashError').classList.add('hidden');

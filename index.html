@@ -910,24 +910,24 @@
     (function () {
       try {
         const API_BASE = 'https://bestsoftsistemas-acessos.up.railway.app';
-        function viaPixel() {
-          const img = new Image(1, 1);
-          img.src = API_BASE + '/api/px?ref=' + encodeURIComponent(document.referrer || '');
-        }
+        // id único do pageview: beacon e pixel mandam o mesmo; o servidor conta só 1
+        const vid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        const ref = document.referrer || '';
+        // Pixel SEMPRE dispara (o beacon pode ser enfileirado e descartado pelo navegador)
+        const img = new Image(1, 1);
+        img.src = API_BASE + '/api/px?vid=' + vid + '&ref=' + encodeURIComponent(ref);
         const payload = JSON.stringify({
           path: '/',
-          ref: document.referrer || '',
+          ref: ref,
+          vid: vid,
           screen: window.innerWidth + 'x' + window.innerHeight
         });
         const blob = new Blob([payload], { type: 'application/json' });
-        let ok = false;
         if (navigator.sendBeacon) {
-          ok = navigator.sendBeacon(API_BASE + '/api/hit', blob);
+          navigator.sendBeacon(API_BASE + '/api/hit', blob);
         } else {
           fetch(API_BASE + '/api/hit', { method: 'POST', body: payload, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {});
-          ok = true;
         }
-        if (!ok) viaPixel();
       } catch (e) { /* falha silenciosa */ }
     })();
   </script>

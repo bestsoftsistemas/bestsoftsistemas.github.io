@@ -147,7 +147,7 @@
           ctx.fillStyle = '#94a3b8';
           ctx.font = '20px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(d.day.slice(5), x + bw / 2, H - 8);
+          ctx.fillText(d.day.slice(8, 10) + '/' + d.day.slice(5, 7), x + bw / 2, H - 8);
         }
       });
     }

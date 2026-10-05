@@ -166,6 +166,14 @@
         ctx.beginPath();
         ctx.roundRect(x, y, bw, h, 6);
         ctx.fill();
+        // quantidade no topo da barra (só quando há visitas)
+        if (d.visits > 0) {
+          ctx.fillStyle = isLight ? '#1e3a5f' : '#e2e8f0';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.font = 'bold 26px Inter, sans-serif';
+          ctx.fillText(String(d.visits), x + bw / 2, y - 8);
+        }
         ctx.fillStyle = '#94a3b8';
         ctx.save();
         ctx.translate(x + bw / 2, H - 16);

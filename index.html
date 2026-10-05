@@ -913,13 +913,17 @@
         // id único do pageview: beacon e pixel mandam o mesmo; o servidor conta só 1
         const vid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
         const ref = document.referrer || '';
+        // Tipo de dispositivo pela largura da tela: <768 celular, <1024 tablet, senão desktop
+        const w = window.innerWidth || 0;
+        const dev = w < 768 ? 'mobile' : (w < 1024 ? 'tablet' : 'desktop');
         // Pixel SEMPRE dispara (o beacon pode ser enfileirado e descartado pelo navegador)
         const img = new Image(1, 1);
-        img.src = API_BASE + '/api/px?vid=' + vid + '&ref=' + encodeURIComponent(ref);
+        img.src = API_BASE + '/api/px?vid=' + vid + '&dev=' + dev + '&ref=' + encodeURIComponent(ref);
         const payload = JSON.stringify({
           path: '/',
           ref: ref,
           vid: vid,
+          dev: dev,
           screen: window.innerWidth + 'x' + window.innerHeight
         });
         const blob = new Blob([payload], { type: 'application/json' });

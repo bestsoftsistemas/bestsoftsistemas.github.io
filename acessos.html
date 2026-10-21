@@ -87,12 +87,18 @@
       </div>
       <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 id="chartTitle" class="font-bold text-gray-900">Visitas por dia (últimos 30 dias)</h2>
-          <div class="flex rounded-lg border border-gray-300 overflow-hidden text-sm font-semibold">
-            <button data-range="30" class="rangeBtn px-4 py-2 transition-colors">30d</button>
-            <button data-range="60" class="rangeBtn px-4 py-2 transition-colors">60d</button>
-            <button data-range="90" class="rangeBtn px-4 py-2 transition-colors">90d</button>
-            <button data-range="180" class="rangeBtn px-4 py-2 transition-colors">180d</button>
+          <div>
+            <h2 id="chartTitle" class="font-bold text-gray-900">Visitas por dia (últimos 30 dias)</h2>
+            <p class="text-xs text-gray-500 mt-1">Atualizado às <span id="lastUpdate">—</span></p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="refreshBtn" title="Atualizar agora" class="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors leading-none">↻</button>
+            <div class="flex rounded-lg border border-gray-300 overflow-hidden text-sm font-semibold">
+              <button data-range="30" class="rangeBtn px-4 py-2 transition-colors">30d</button>
+              <button data-range="60" class="rangeBtn px-4 py-2 transition-colors">60d</button>
+              <button data-range="90" class="rangeBtn px-4 py-2 transition-colors">90d</button>
+              <button data-range="180" class="rangeBtn px-4 py-2 transition-colors">180d</button>
+            </div>
           </div>
         </div>
         <canvas id="chart" class="w-full" height="220"></canvas>
@@ -124,6 +130,7 @@
     const masterInput = document.getElementById('masterInput');
     let lastStats = null;
     let currentRange = 30;
+    let lastUpdateTs = 0;
 
     const MONTHS_PT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
@@ -233,6 +240,9 @@
     async function renderAll(master) {
       const stats = await loadStats(master, currentRange);
       lastStats = stats;
+      lastUpdateTs = Date.now();
+      const lu = document.getElementById('lastUpdate');
+      if (lu) lu.textContent = new Date(lastUpdateTs).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       gate.classList.add('hidden');
       dash.classList.remove('hidden');
       document.getElementById('rangeLabel').textContent = currentRange;
@@ -289,16 +299,7 @@
         const r = Number(btn.dataset.range);
         if (r === currentRange) return;
         currentRange = r;
-    paintRangeBtns();
-
-    // Auto-refresh: recarrega os dados a cada 1 hora (se logado)
-    setInterval(() => {
-      const m = getMaster();
-      if (m && !dash.classList.contains('hidden')) {
-        renderAll(m).catch(e => showErrors(e, false));
-      }
-    }, 60 * 60 * 1000);
-
+        paintRangeBtns();
         const m = getMaster();
         if (m) {
           document.getElementById('dashError').classList.add('hidden');
@@ -307,6 +308,24 @@
       });
     });
     paintRangeBtns();
+
+    // Auto-refresh: recarrega os dados a cada 1 hora (se logado)
+    function autoRefresh() {
+      const m = getMaster();
+      if (m && !dash.classList.contains('hidden')) {
+        document.getElementById('dashError').classList.add('hidden');
+        renderAll(m).catch(e => showErrors(e, false));
+      }
+    }
+    setInterval(autoRefresh, 60 * 60 * 1000);
+
+    // Atualiza ao voltar para a aba (dados sempre frescos ao retornar)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastUpdateTs > 60000) autoRefresh();
+    });
+
+    // Botão de atualização manual
+    document.getElementById('refreshBtn').addEventListener('click', autoRefresh);
 
     document.getElementById('unlockBtn').addEventListener('click', () => unlock(masterInput.value.trim()));
     masterInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(masterInput.value.trim()); });

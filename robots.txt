@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Bloqueia a pagina restrita de estatisticas internas de acessos
+Disallow: /acessos.html
+
+# Localizacao do Sitemap oficial
+Sitemap: https://bestsoftsistemas.com.br/sitemap.xml
